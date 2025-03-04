@@ -26,7 +26,7 @@ const createCat = (id, name, color, likes) => {
     //         .catch(error => console.log(error));
     // };
 
-    likesElement.onclick = () => {
+    cat.onclick = () => {
         likedCat(id)
             .then(() => fetchCats())
             .then(cats => {
@@ -74,15 +74,10 @@ const deleteCat = (catId) => {
 const likedCat = (catId) => {
     return fetch(backendUrl + '/cats/' + catId, {
         method: 'PATCH',
-        body: JSON.stringify({
-          likes: "1"
-        }),
-        headers: {
-          "Content-type": "application/json; charset=UTF-8"	
-        }
+        body: JSON.stringify({likes: 100}),
+        headers: {"Content-type": "application/json; charset=UTF-8" }
       })
       .then(response => response.json())
-      .then(json => console.log(json))
       .catch(error => console.log(error));
 }
 

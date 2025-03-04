@@ -3,6 +3,7 @@ from typing import Union
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
+from fastapi.encoders import jsonable_encoder
 
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -59,6 +60,10 @@ def get_cats():
     logger.info(f"{StorageCats.count_cats()} cats returned")
     return {'status': 'ok', 'cats': StorageCats.get_all_cats()}
 
+@app.get("/items/{item_id}", response_model=Cat)
+async def read_item(item_id: str):
+    return StorageCats[item_id]
+
 @app.post('/cats')
 def post_cats(cat: Cat):
     StorageCats.add_cat(cat)
@@ -66,11 +71,13 @@ def post_cats(cat: Cat):
     return {'status': 'ok'}
 
 @app.patch('/cats/{id}/like')
-def give_like_cat(id):
-    target_cat_id = StorageCats.find_cat_id(id)
-    target_cat_id.give_like()
-    logger.info(f"Лайк поставлен котику под id {target_cat_id}")
-    return {'status like': 'ok'}
+def give_like_cat(item_id: str, item: Cat):
+    stored_item_data = StorageCats[item_id]
+    stored_item_model = Cat(**stored_item_data)
+    update_data = item.dict(exclude_unset=True)
+    updated_item = stored_item_model.copy(update=update_data)
+    StorageCats[item_id] = jsonable_encoder(updated_item)
+    return updated_item
 
 
 app.mount("/", StaticFiles(directory="./static", html=True), name="static")
